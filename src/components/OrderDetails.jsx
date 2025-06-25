@@ -27,7 +27,7 @@ export default function OrderDetail() {
     const fetchOrder = async () => {
       try {
         const response = await axios.get(`${apiUrl}/api/orders/${orderId}`);
-        console.log(response.data )
+        console.log(response.data)
         setOrder(response.data);
       } catch (error) {
         console.error('Error fetching order:', error);
@@ -88,64 +88,68 @@ export default function OrderDetail() {
           </List>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Order Summary
-            </Typography>
-            <List>
-              <ListItem>
-                <ListItemText primary="Items" />
-                <Typography>${totalAmount.toFixed(2)}</Typography>
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Shipping" />
-                <Typography>$0.00</Typography>
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText primary="Order Total" />
-                <Typography variant="h6">${totalAmount.toFixed(2)}</Typography>
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
-
         <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-            Products
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Product</TableCell>
-                  <TableCell>Brand</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Quantity</TableCell>
-                  <TableCell>Total</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {order.products.map((product, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Avatar sx={{ mr: 2 }}>
-                          <ShoppingCartIcon />
-                        </Avatar>
-                        <Typography>{product.title}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{product.brand}</TableCell>
-                    <TableCell>${product.price.toFixed(2)}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell>${(product.price * product.quantity).toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Typography variant="h6" gutterBottom>
+                Products
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Product</TableCell>
+                      <TableCell>Brand</TableCell>
+                      <TableCell>Price</TableCell>
+                      <TableCell>Quantity</TableCell>
+                      <TableCell>Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {order.products.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar sx={{ mr: 2 }}>
+                              <ShoppingCartIcon />
+                            </Avatar>
+                            <Typography>{product.title}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>{product.brand}</TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.quantity}</TableCell>
+                        <TableCell>${(product.price * product.quantity).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Order Summary
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText primary="Items" />
+                    <Typography>${totalAmount.toFixed(2)}</Typography>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText primary="Shipping" />
+                    <Typography>$0.00</Typography>
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText primary="Order Total" />
+                    <Typography variant="h6">${totalAmount.toFixed(2)}</Typography>
+                  </ListItem>
+                </List>
+              </Paper>
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </Paper>
