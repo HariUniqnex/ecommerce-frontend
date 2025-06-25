@@ -27,6 +27,7 @@ export default function OrderDetail() {
     const fetchOrder = async () => {
       try {
         const response = await axios.get(`${apiUrl}/api/orders/${orderId}`);
+        console.log(response.data )
         setOrder(response.data);
       } catch (error) {
         console.error('Error fetching order:', error);
@@ -81,7 +82,7 @@ export default function OrderDetail() {
               </Avatar>
               <ListItemText 
                 primary="Payment Method" 
-                secondary={order.payment_method || 'Not specified'} 
+                secondary={order.payment_method || 'Other'} 
               />
             </ListItem>
           </List>

@@ -34,7 +34,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/api/orders`);
+        const response = await axios.get(`${apiUrl}/api/orders/stats`);
         console.log("ORDERS",response)
         setStats(response.data);
       } catch (error) {
@@ -49,7 +49,7 @@ export default function Dashboard() {
   if (loading) return <CircularProgress />;
 
   const statusData = {
-    labels: stats?.statusCounts?.map(item => item._id),
+    labels: stats?.statusCounts?.map(item => item.id),
     datasets: [{
       data: stats?.statusCounts?.map(item => item.count),
       backgroundColor: [
