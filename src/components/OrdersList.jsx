@@ -50,7 +50,7 @@
             return {
               id: order.order_id,
               order_id: order.order_id,
-              purchase_date: order.purchase_date || new Date(),
+              purchase_date: order.purchase_date || "N/A",
               order_status: order.order_status || "Shipped",
               products: products,
               items: items,
