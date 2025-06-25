@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Grid, Paper, Typography, Card, CardContent, 
   CircularProgress, Divider, MenuItem, Select, 
-  FormControl, InputLabel, Box
+  FormControl, InputLabel, Box, Stack
 } from '@mui/material';
 import { Bar, Pie } from 'react-chartjs-2';
 import axios from 'axios';
@@ -31,15 +31,25 @@ ChartJS.register(
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [filteredData, setFilteredData] = useState(null);
+  const [availableYears, setAvailableYears] = useState([]);
+  const [availableMonths, setAvailableMonths] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(`${apiUrl}/api/orders/stats`);
-        setStats(response.data);
-        setFilteredData(response.data);
+        const data = response.data;
+        
+        const years = [...new Set(data.monthlyTotals
+          .filter(item => item.year)
+          .map(item => item.year))].sort();
+        
+        setAvailableYears(years);
+        setStats(data);
+        setFilteredData(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
@@ -51,20 +61,54 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (stats) {
-      if (selectedMonth === 'all') {
-        setFilteredData(stats);
-      } else {
-        const monthData = stats.monthlyTotals.find(item => item.month === selectedMonth);
-        const filteredStats = {
-          ...stats,
+      const monthsForYear = stats.monthlyTotals
+        .filter(item => selectedYear === 'all' || item.year === selectedYear)
+        .filter(item => item.total > 0)
+        .map(item => item.month);
+      
+      setAvailableMonths([...new Set(monthsForYear)]);
+      
+      if (selectedMonth !== 'all' && !monthsForYear.includes(selectedMonth)) {
+        setSelectedMonth('all');
+      }
+    }
+  }, [selectedYear, stats]);
+
+  useEffect(() => {
+    if (stats) {
+      let filteredStats = {...stats};
+      
+      if (selectedYear !== 'all') {
+        filteredStats.monthlyTotals = stats.monthlyTotals.filter(
+          item => item.year === selectedYear
+        );
+      }
+      
+      if (selectedMonth !== 'all') {
+        const monthData = filteredStats.monthlyTotals.find(
+          item => item.month === selectedMonth
+        );
+        
+        filteredStats = {
+          ...filteredStats,
           totalRevenue: monthData ? monthData.total : 0,
           totalOrders: monthData ? Math.round(monthData.total / stats.avgOrderValue) : 0,
           monthlyTotals: monthData ? [monthData] : []
         };
-        setFilteredData(filteredStats);
       }
+      
+      if (selectedMonth === 'all') {
+        filteredStats.totalRevenue = filteredStats.monthlyTotals.reduce(
+          (sum, item) => sum + item.total, 0
+        );
+        filteredStats.totalOrders = Math.round(
+          filteredStats.totalRevenue / stats.avgOrderValue
+        );
+      }
+      
+      setFilteredData(filteredStats);
     }
-  }, [selectedMonth, stats]);
+  }, [selectedYear, selectedMonth, stats]);
 
   if (loading) return (
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -84,7 +128,7 @@ export default function Dashboard() {
   };
 
   const monthlyData = {
-    labels: filteredData?.monthlyTotals?.map(item => item.month),
+    labels: filteredData?.monthlyTotals?.map(item => `${item.month} ${item.year || ''}`),
     datasets: [{
       label: 'Sales ($)',
       data: filteredData?.monthlyTotals?.map(item => item.total),
@@ -93,21 +137,31 @@ export default function Dashboard() {
     }]
   };
 
-  // Get months with actual sales (> 0) for the filter dropdown
-  const availableMonths = stats?.monthlyTotals
-    ?.filter(item => item.total > 0)
-    ?.map(item => item.month) || [];
-
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
-        <Box display="flex" justifyContent="flex-end">
+        <Stack direction="row" spacing={2} justifyContent="flex-end">
           <FormControl sx={{ minWidth: 120 }} size="small">
-            <InputLabel>Filter by Month</InputLabel>
+            <InputLabel>Year</InputLabel>
+            <Select
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <MenuItem value="all">All Years</MenuItem>
+              {availableYears.map((year) => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl sx={{ minWidth: 120 }} size="small">
+            <InputLabel>Month</InputLabel>
             <Select
               value={selectedMonth}
-              label="Filter by Month"
+              label="Month"
               onChange={(e) => setSelectedMonth(e.target.value)}
+              disabled={availableMonths.length === 0}
             >
               <MenuItem value="all">All Months</MenuItem>
               {availableMonths.map((month) => (
@@ -115,7 +169,7 @@ export default function Dashboard() {
               ))}
             </Select>
           </FormControl>
-        </Box>
+        </Stack>
       </Grid>
 
       <Grid item xs={12} md={4}>
@@ -165,7 +219,11 @@ export default function Dashboard() {
       <Grid item xs={12} md={6}>
         <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
           <Typography variant="h6" gutterBottom>
-            {selectedMonth === 'all' ? 'Monthly Sales' : `${selectedMonth} Sales`}
+            {selectedMonth === 'all' 
+              ? selectedYear === 'all' 
+                ? 'Monthly Sales' 
+                : `${selectedYear} Sales`
+              : `${selectedMonth} ${selectedYear} Sales`}
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Box sx={{ height: 300 }}>
