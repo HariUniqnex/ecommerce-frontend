@@ -264,7 +264,7 @@ export default function Dashboard() {
               Total Orders
             </Typography>
             <Typography variant="h4">
-              {filteredData.totalOrders || 0}
+              {filteredData.totalOrders || 1}
             </Typography>
             {selectedMonth !== "all" && filteredData.totalOrders === 0 && (
               <Typography variant="caption" color="textSecondary">
@@ -295,7 +295,7 @@ export default function Dashboard() {
               Avg. Order Value
             </Typography>
             <Typography variant="h4">
-              ${(filteredData.avgOrderValue || 0).toFixed(2)}
+              ${(filteredData.avgOrderValue || filteredData.totalRevenue).toFixed(2)}
             </Typography>
           </CardContent>
         </Card>
