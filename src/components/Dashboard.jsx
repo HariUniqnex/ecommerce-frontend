@@ -115,10 +115,10 @@ export default function Dashboard() {
   };
 
   const monthlyData = {
-    labels: filteredStats?.monthlyTotals?.map(item => `${item.month} ${item.year || ''}`),
+    labels: filteredData?.monthlyTotals?.map(item => `${item.month} ${item.year || ''}`),
     datasets: [{
       label: 'Sales ($)',
-      data: filteredStats?.monthlyTotals?.map(item => item.total),
+      data: filteredData?.monthlyTotals?.map(item => item.total),
       backgroundColor: '#FF9900',
       borderRadius: 4,
     }]
