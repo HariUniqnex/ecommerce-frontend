@@ -87,6 +87,8 @@ export default function OrderDetail() {
             </ListItem>
           </List>
         </Grid>
+        <Grid item xs={12} md ={4}/>
+        
         <Grid item xs={12} md={4}>
               <Paper elevation={2} sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
@@ -104,7 +106,7 @@ export default function OrderDetail() {
                   <Divider />
                   <ListItem>
                     <ListItemText primary="Order Total" />
-                    <Typography variant="h6">${totalAmount.toFixed(2)}</Typography>
+                    <Typography variant="h6">  ${totalAmount.toFixed(2)}</Typography>
                   </ListItem>
                 </List>
               </Paper>
