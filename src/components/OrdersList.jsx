@@ -75,7 +75,7 @@
         field: "order_id",
         headerName: "Order ID",
         width: 200,
-        sortable:true
+        sortable:rue
       },
       {
         field: "purchase_date",
