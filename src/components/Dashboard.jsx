@@ -65,7 +65,7 @@ export default function Dashboard() {
         setStats(data);
         setFilteredData(data);
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        toa.error("Error fetching stats:", error);
       } finally {
         setLoading(false);
       }

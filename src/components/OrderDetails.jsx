@@ -10,6 +10,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { apiUrl } from '../utils/api';
+import { toast } from 'react-toastify';
 
 const statusColors = {
   Shipped: 'success',
@@ -27,10 +28,9 @@ export default function OrderDetail() {
     const fetchOrder = async () => {
       try {
         const response = await axios.get(`${apiUrl}/api/orders/${orderId}`);
-        console.log(response.data)
         setOrder(response.data);
       } catch (error) {
-        console.error('Error fetching order:', error);
+        toast.error('Failed to fetch order!Try again');
       } finally {
         setLoading(false);
       }
