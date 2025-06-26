@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Grid, Paper, Typography, Card, CardContent, 
-  CircularProgress, Divider, MenuItem, Select, 
-  FormControl, InputLabel, Box, Stack
-} from '@mui/material';
-import { Bar, Pie } from 'react-chartjs-2';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import {
+  Grid,
+  Paper,
+  Typography,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Box,
+  Stack,
+} from "@mui/material";
+import { Bar, Pie } from "react-chartjs-2";
+import axios from "axios";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,8 +25,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { apiUrl } from '../utils/api';
+} from "chart.js";
+import { apiUrl } from "../utils/api";
 
 ChartJS.register(
   CategoryScale,
@@ -31,8 +41,8 @@ ChartJS.register(
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedMonth, setSelectedMonth] = useState("all");
   const [filteredData, setFilteredData] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
   const [availableMonths, setAvailableMonths] = useState([]);
@@ -42,16 +52,20 @@ export default function Dashboard() {
       try {
         const response = await axios.get(`${apiUrl}/api/orders/stats`);
         const data = response.data;
-        
-        const years = [...new Set(data.monthlyTotals
-          .filter(item => item.total > 0)
-          .map(item => item.year))].sort();
-        
+
+        const years = [
+          ...new Set(
+            data.monthlyTotals
+              .filter((item) => item.total > 0)
+              .map((item) => item.year)
+          ),
+        ].sort();
+
         setAvailableYears(years);
         setStats(data);
         setFilteredData(data);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error("Error fetching stats:", error);
       } finally {
         setLoading(false);
       }
@@ -62,43 +76,47 @@ export default function Dashboard() {
   useEffect(() => {
     if (stats) {
       const monthsForYear = stats.monthlyTotals
-        .filter(item => selectedYear === 'all' || item.year === selectedYear)
-        .filter(item => item.total > 0)
-        .map(item => item.month);
-      
+        .filter((item) => selectedYear === "all" || item.year === selectedYear)
+        .filter((item) => item.total > 0)
+        .map((item) => item.month);
+
       setAvailableMonths([...new Set(monthsForYear)]);
-      
-      if (selectedMonth !== 'all' && !monthsForYear.includes(selectedMonth)) {
-        setSelectedMonth('all');
+
+      if (selectedMonth !== "all" && !monthsForYear.includes(selectedMonth)) {
+        setSelectedMonth("all");
       }
     }
   }, [selectedYear, stats]);
 
   useEffect(() => {
     if (stats) {
-      let filteredStats = {...stats};
-      
-      if (selectedYear !== 'all') {
+      let filteredStats = { ...stats };
+
+      if (selectedYear !== "all") {
         filteredStats.monthlyTotals = stats.monthlyTotals.filter(
-          item => item.year === selectedYear
+          (item) => item.year === selectedYear
         );
       }
-      
-      if (selectedMonth !== 'all') {
+
+      if (selectedMonth !== "all") {
         const monthData = filteredStats.monthlyTotals.find(
-          item => item.month === selectedMonth && 
-                  (selectedYear === 'all' || item.year === selectedYear)
+          (item) =>
+            item.month === selectedMonth &&
+            (selectedYear === "all" || item.year === selectedYear)
         );
-        
+
         if (monthData && monthData.total > 0) {
-          const estimatedOrders = Math.round(monthData.total / stats.avgOrderValue);
-          
+          const estimatedOrders = Math.round(
+            monthData.total / stats.avgOrderValue
+          );
+
           filteredStats = {
             ...filteredStats,
             totalRevenue: monthData.total,
             totalOrders: estimatedOrders,
-            avgOrderValue: estimatedOrders > 0 ? monthData.total / estimatedOrders : 0,
-            monthlyTotals: [monthData]
+            avgOrderValue:
+              estimatedOrders > 0 ? monthData.total / estimatedOrders : 0,
+            monthlyTotals: [monthData],
           };
         } else {
           filteredStats = {
@@ -106,64 +124,98 @@ export default function Dashboard() {
             totalRevenue: 0,
             totalOrders: 0,
             avgOrderValue: 0,
-            monthlyTotals: []
+            monthlyTotals: [],
           };
         }
       } else {
-        const relevantMonths = filteredStats.monthlyTotals.filter(item => item.total > 0);
-        
+        const relevantMonths = filteredStats.monthlyTotals.filter(
+          (item) => item.total > 0
+        );
+
         filteredStats.totalRevenue = relevantMonths.reduce(
-          (sum, item) => sum + item.total, 0
+          (sum, item) => sum + item.total,
+          0
         );
-        
-        filteredStats.totalOrders = Math.round(
-          filteredStats.totalRevenue / (stats.avgOrderValue || 1)
-        );
-        
-        filteredStats.avgOrderValue = filteredStats.totalOrders > 0 
-          ? filteredStats.totalRevenue / filteredStats.totalOrders 
-          : 0;
-        
+
+        if (filteredStats.totalRevenue > 0) {
+          filteredStats.totalOrders = Math.max(
+            1,
+            Math.round(
+              filteredStats.totalRevenue /
+                (stats.avgOrderValue || filteredStats.totalRevenue)
+            )
+          );
+        } else {
+          filteredStats.totalOrders = 0;
+        }
+
+        filteredStats.avgOrderValue =
+          filteredStats.totalOrders > 0
+            ? filteredStats.totalRevenue / filteredStats.totalOrders
+            : 0;
+
         filteredStats.monthlyTotals = relevantMonths;
       }
-      
+
       setFilteredData(filteredStats);
     }
   }, [selectedYear, selectedMonth, stats]);
 
-  if (loading) return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-      <CircularProgress />
-    </Box>
-  );
+  if (loading)
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
 
   if (!filteredData || !filteredData.statusCounts) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
         <Typography variant="h6">No data available</Typography>
       </Box>
     );
   }
 
   const statusData = {
-    labels: filteredData.statusCounts.map(item => item.id),
-    datasets: [{
-      data: filteredData.statusCounts.map(item => item.count),
-      backgroundColor: [
-        '#FF9900', '#232F3E', '#FFD700', '#00A8E1', '#FF6B6B', '#4ECDC4'
-      ],
-      borderWidth: 1,
-    }]
+    labels: filteredData.statusCounts.map((item) => item.id),
+    datasets: [
+      {
+        data: filteredData.statusCounts.map((item) => item.count),
+        backgroundColor: [
+          "#FF9900",
+          "#232F3E",
+          "#FFD700",
+          "#00A8E1",
+          "#FF6B6B",
+          "#4ECDC4",
+        ],
+        borderWidth: 1,
+      },
+    ],
   };
 
   const monthlyData = {
-    labels: filteredData.monthlyTotals.map(item => `${item.month} ${item.year}`),
-    datasets: [{
-      label: 'Sales ($)',
-      data: filteredData.monthlyTotals.map(item => item.total),
-      backgroundColor: '#FF9900',
-      borderRadius: 4,
-    }]
+    labels: filteredData.monthlyTotals.map(
+      (item) => `${item.month} ${item.year}`
+    ),
+    datasets: [
+      {
+        label: "Sales ($)",
+        data: filteredData.monthlyTotals.map((item) => item.total),
+        backgroundColor: "#FF9900",
+        borderRadius: 4,
+      },
+    ],
   };
 
   return (
@@ -179,11 +231,13 @@ export default function Dashboard() {
             >
               <MenuItem value="all">All Years</MenuItem>
               {availableYears.map((year) => (
-                <MenuItem key={year} value={year}>{year}</MenuItem>
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
-          
+
           <FormControl sx={{ minWidth: 120 }} size="small">
             <InputLabel>Month</InputLabel>
             <Select
@@ -194,7 +248,9 @@ export default function Dashboard() {
             >
               <MenuItem value="all">All Months</MenuItem>
               {availableMonths.map((month) => (
-                <MenuItem key={month} value={month}>{month}</MenuItem>
+                <MenuItem key={month} value={month}>
+                  {month}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -204,11 +260,13 @@ export default function Dashboard() {
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>Total Orders</Typography>
+            <Typography color="textSecondary" gutterBottom>
+              Total Orders
+            </Typography>
             <Typography variant="h4">
               {filteredData.totalOrders || 0}
             </Typography>
-            {selectedMonth !== 'all' && filteredData.totalOrders === 0 && (
+            {selectedMonth !== "all" && filteredData.totalOrders === 0 && (
               <Typography variant="caption" color="textSecondary">
                 No orders in selected period
               </Typography>
@@ -216,22 +274,26 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </Grid>
-      
+
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>Total Revenue</Typography>
+            <Typography color="textSecondary" gutterBottom>
+              Total Revenue
+            </Typography>
             <Typography variant="h4">
               ${(filteredData.totalRevenue || 0).toFixed(2)}
             </Typography>
           </CardContent>
         </Card>
       </Grid>
-      
+
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
-            <Typography color="textSecondary" gutterBottom>Avg. Order Value</Typography>
+            <Typography color="textSecondary" gutterBottom>
+              Avg. Order Value
+            </Typography>
             <Typography variant="h4">
               ${(filteredData.avgOrderValue || 0).toFixed(2)}
             </Typography>
@@ -240,45 +302,56 @@ export default function Dashboard() {
       </Grid>
 
       <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-          <Typography variant="h6" gutterBottom>Orders by Status</Typography>
+        <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
+          <Typography variant="h6" gutterBottom>
+            Orders by Status
+          </Typography>
           <Divider sx={{ mb: 2 }} />
           <Box sx={{ height: 300 }}>
             {filteredData.statusCounts.length > 0 ? (
-              <Pie 
-                data={statusData} 
+              <Pie
+                data={statusData}
                 options={{
                   maintainAspectRatio: false,
                   plugins: {
                     legend: {
-                      position: 'right',
-                    }
-                  }
-                }} 
+                      position: "right",
+                    },
+                  },
+                }}
               />
             ) : (
-              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                <Typography color="textSecondary">No status data available</Typography>
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+              >
+                <Typography color="textSecondary">
+                  No status data available
+                </Typography>
               </Box>
             )}
           </Box>
         </Paper>
       </Grid>
-      
+
       <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
+        <Paper elevation={3} sx={{ p: 2, height: "100%" }}>
           <Typography variant="h6" gutterBottom>
-            {selectedMonth === 'all' 
-              ? selectedYear === 'all' 
-                ? 'Monthly Sales' 
+            {selectedMonth === "all"
+              ? selectedYear === "all"
+                ? "Monthly Sales"
                 : `${selectedYear} Sales`
-              : `${selectedMonth} ${selectedYear !== 'all' ? selectedYear : ''} Sales`}
+              : `${selectedMonth} ${
+                  selectedYear !== "all" ? selectedYear : ""
+                } Sales`}
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Box sx={{ height: 300 }}>
             {filteredData.monthlyTotals.length > 0 ? (
-              <Bar 
-                data={monthlyData} 
+              <Bar
+                data={monthlyData}
                 options={{
                   maintainAspectRatio: false,
                   responsive: true,
@@ -288,26 +361,31 @@ export default function Dashboard() {
                     },
                     tooltip: {
                       callbacks: {
-                        label: function(context) {
-                          return '$' + context.raw.toFixed(2);
-                        }
-                      }
-                    }
+                        label: function (context) {
+                          return "$" + context.raw.toFixed(2);
+                        },
+                      },
+                    },
                   },
                   scales: {
                     y: {
                       beginAtZero: true,
                       ticks: {
-                        callback: function(value) {
-                          return '$' + value;
-                        }
-                      }
-                    }
-                  }
-                }} 
+                        callback: function (value) {
+                          return "$" + value;
+                        },
+                      },
+                    },
+                  },
+                }}
               />
             ) : (
-              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+              >
                 <Typography color="textSecondary">
                   No sales data for selected period
                 </Typography>
