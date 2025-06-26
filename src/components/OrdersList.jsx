@@ -15,6 +15,9 @@
   export default function OrdersList() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sortModel,setSortModel]=useState([
+      {field:"purchase_date",sort:'desc'}
+    ])
 
     useEffect(() => {
       const fetchOrders = async () => {
@@ -72,6 +75,7 @@
         field: "order_id",
         headerName: "Order ID",
         width: 200,
+        sortable:True
       },
       {
         field: "purchase_date",
@@ -91,6 +95,7 @@
             minute: "2-digit",
           });
         },
+        sortable:true
       },
 
       {
@@ -103,12 +108,14 @@
             color={statusColors[params.value] || "default"}
           />
         ),
+        sortable:true
       },
       {
         field: "items",
         headerName: "Items",
         width: 100,
         type: "number",
+        sortable:true
       },
       {
         field: "total",
@@ -119,6 +126,7 @@
           const value = Number(params) || 0;
           return `$${value.toFixed(2)}`;
         },
+        sortable:true
       },
       {
         field: "actions",
@@ -158,6 +166,8 @@
           pageSizeOptions={[10, 25, 50]}
           checkboxSelection={false}
           disableRowSelectionOnClick
+          sortModel={sortModel}
+          onSortModelChange={(newModel)=>setSortModel(newModel)}
         />
       </div>
     );
