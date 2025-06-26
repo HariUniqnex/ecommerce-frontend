@@ -87,6 +87,28 @@ export default function OrderDetail() {
             </ListItem>
           </List>
         </Grid>
+        <Grid item xs={12} md={4}>
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Order Summary
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText primary="Items" />
+                    <Typography>${totalAmount.toFixed(2)}</Typography>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText primary="Shipping" />
+                    <Typography>$0.00</Typography>
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText primary="Order Total" />
+                    <Typography variant="h6">${totalAmount.toFixed(2)}</Typography>
+                  </ListItem>
+                </List>
+              </Paper>
+            </Grid>
 
         <Grid item xs={12}>
           <Grid container spacing={3}>
@@ -127,28 +149,7 @@ export default function OrderDetail() {
               </TableContainer>
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <Paper elevation={2} sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Order Summary
-                </Typography>
-                <List>
-                  <ListItem>
-                    <ListItemText primary="Items" />
-                    <Typography>${totalAmount.toFixed(2)}</Typography>
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText primary="Shipping" />
-                    <Typography>$0.00</Typography>
-                  </ListItem>
-                  <Divider />
-                  <ListItem>
-                    <ListItemText primary="Order Total" />
-                    <Typography variant="h6">${totalAmount.toFixed(2)}</Typography>
-                  </ListItem>
-                </List>
-              </Paper>
-            </Grid>
+            
           </Grid>
         </Grid>
       </Grid>
