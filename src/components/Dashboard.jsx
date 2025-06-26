@@ -266,11 +266,7 @@ export default function Dashboard() {
             <Typography variant="h4">
               {filteredData.totalOrders || 1}
             </Typography>
-            {selectedMonth !== "all" && filteredData.totalOrders === 0 && (
-              <Typography variant="caption" color="textSecondary">
-                No orders in selected period
-              </Typography>
-            )}
+  
           </CardContent>
         </Card>
       </Grid>
