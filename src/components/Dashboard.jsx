@@ -76,22 +76,35 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (stats) {
-      let filteredStats = { ...stats };
+      let filteredStats = {...stats};
       
-      filteredStats.monthlyTotals = stats.monthlyTotals.filter(item =>
-        (selectedYear === 'all' || item.year === selectedYear) &&
-        (selectedMonth === 'all' || item.month === selectedMonth)
-      );
+      if (selectedYear !== 'all') {
+        filteredStats.monthlyTotals = stats.monthlyTotals.filter(
+          item => item.year === selectedYear
+        );
+      }
       
-      filteredStats.totalRevenue = filteredStats.monthlyTotals.reduce(
-        (sum, item) => sum + item.total, 0
-      );
+      if (selectedMonth !== 'all') {
+        const monthData = filteredStats.monthlyTotals.find(
+          item => item.month === selectedMonth
+        );
+        
+        filteredStats = {
+          ...filteredStats,
+          totalRevenue: monthData ? monthData.total : 0,
+          totalOrders: monthData ? Math.round(monthData.total / stats.avgOrderValue) : 0,
+          monthlyTotals: monthData ? [monthData] : []
+        };
+      }
       
-      filteredStats.totalOrders = filteredStats.monthlyTotals.reduce(
-        (sum, item) => sum + (item.orderCount || Math.round(item.total / stats.avgOrderValue)), 0
-      );
-      
-      filteredStats.avgOrderValue = filteredStats.totalRevenue / filteredStats.totalOrders || 0;
+      if (selectedMonth === 'all') {
+        filteredStats.totalRevenue = filteredStats.monthlyTotals.reduce(
+          (sum, item) => sum + item.total, 0
+        );
+        filteredStats.totalOrders = Math.round(
+          filteredStats.totalRevenue / stats.avgOrderValue
+        );
+      }
       
       setFilteredData(filteredStats);
     }
@@ -163,31 +176,23 @@ export default function Dashboard() {
         <Card elevation={3}>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>Total Orders</Typography>
-            <Typography variant="h4">
-              {filteredData?.totalOrders || 0}
-            </Typography>
+            <Typography variant="h4">{filteredData?.totalOrders}</Typography>
           </CardContent>
         </Card>
       </Grid>
-      
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>Total Revenue</Typography>
-            <Typography variant="h4">
-              ${(filteredData?.totalRevenue || 0).toFixed(2)}
-            </Typography>
+            <Typography variant="h4">${filteredData?.totalRevenue?.toFixed(2)}</Typography>
           </CardContent>
         </Card>
       </Grid>
-      
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>Avg. Order Value</Typography>
-            <Typography variant="h4">
-              ${(filteredData?.avgOrderValue || 0).toFixed(2)}
-            </Typography>
+            <Typography variant="h4">${stats?.avgOrderValue?.toFixed(2)}</Typography>
           </CardContent>
         </Card>
       </Grid>
@@ -211,7 +216,6 @@ export default function Dashboard() {
           </Box>
         </Paper>
       </Grid>
-      
       <Grid item xs={12} md={6}>
         <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
           <Typography variant="h6" gutterBottom>
